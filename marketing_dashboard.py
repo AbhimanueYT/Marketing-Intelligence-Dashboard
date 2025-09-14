@@ -490,27 +490,27 @@ def create_insights(marketing_df, business_df, selected_date_range):
     avg_roas = marketing_filtered['roas'].mean()
     
     if total_spend > 0:
-        insights.append(f"💰 **Spend**: ${total_spend:,.0f} | **Revenue**: ${total_revenue:,.0f} | **ROAS**: {avg_roas:.1f}x")
+        insights.append(f"💰 Spend: ${total_spend:,.0f} | Revenue: ${total_revenue:,.0f} | ROAS: {avg_roas:.1f}x")
     
     # Best platform
     platform_roas = marketing_filtered.groupby('platform')['roas'].mean().sort_values(ascending=False)
     if len(platform_roas) > 0:
         best_platform = platform_roas.index[0]
         best_platform_roas = platform_roas.iloc[0]
-        insights.append(f"🏆 **Top Platform**: {best_platform} ({best_platform_roas:.1f}x ROAS)")
+        insights.append(f"🏆 Top Platform: {best_platform} ({best_platform_roas:.1f}x ROAS)")
     
     # Best tactic
     tactic_roas = marketing_filtered.groupby('tactic')['roas'].mean().sort_values(ascending=False)
     if len(tactic_roas) > 0:
         best_tactic = tactic_roas.index[0]
         best_tactic_roas = tactic_roas.iloc[0]
-        insights.append(f"🚀 **Top Tactic**: {best_tactic} ({best_tactic_roas:.1f}x ROAS)")
+        insights.append(f"🚀 Top Tactic: {best_tactic} ({best_tactic_roas:.1f}x ROAS)")
     
     # Attribution
     total_business_revenue = business_filtered['total_revenue'].sum()
     if total_business_revenue > 0:
         attribution_rate = (total_revenue / total_business_revenue * 100)
-        insights.append(f"📊 **Attribution**: {attribution_rate:.1f}% of business revenue")
+        insights.append(f"📊 Attribution: {attribution_rate:.1f}% of business revenue")
    
     return insights
 
