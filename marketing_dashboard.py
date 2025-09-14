@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import numpy as np
 from datetime import datetime, timedelta
 import warnings
@@ -199,6 +200,8 @@ def create_kpi_cards(marketing_df, business_df, selected_date_range):
     # Calculate KPIs
     total_spend = marketing_filtered['spend'].sum()
     total_revenue = marketing_filtered['attributed_revenue'].sum()
+    total_impressions = marketing_filtered['impressions'].sum()
+    total_clicks = marketing_filtered['clicks'].sum()
     avg_roas = marketing_filtered['roas'].mean() if len(marketing_filtered) > 0 else 0
     avg_ctr = marketing_filtered['ctr'].mean() if len(marketing_filtered) > 0 else 0
     
@@ -241,6 +244,7 @@ def create_kpi_cards(marketing_df, business_df, selected_date_range):
 def create_platform_comparison(marketing_df, selected_date_range):
     """Create platform comparison charts"""
     if marketing_df.empty:
+        st.error("No marketing data available")
         return None, pd.DataFrame()
     
     # Convert date range to datetime for comparison
@@ -253,23 +257,49 @@ def create_platform_comparison(marketing_df, selected_date_range):
     ]
     
     if len(marketing_filtered) == 0:
+        st.warning("No data available for selected date range")
         return None, pd.DataFrame()
     
     # Platform performance summary
     platform_summary = marketing_filtered.groupby('platform').agg({
         'spend': 'sum',
         'attributed_revenue': 'sum',
+        'impressions': 'sum',
+        'clicks': 'sum',
         'roas': 'mean',
         'ctr': 'mean'
     }).round(2)
     
-    # Create simple bar chart
-    fig = px.bar(
-        platform_summary.reset_index(), 
-        x='platform', 
-        y='spend',
-        title="Marketing Spend by Platform",
-        labels={'platform': 'Platform', 'spend': 'Total Spend ($)'}
+    # Create subplots
+    fig = make_subplots(
+        rows=2, cols=2,
+        subplot_titles=('Spend by Platform', 'Revenue by Platform', 'ROAS by Platform', 'CTR by Platform'),
+        specs=[[{"type": "bar"}, {"type": "bar"}],
+               [{"type": "bar"}, {"type": "bar"}]]
+    )
+    
+    # Spend chart
+    fig.add_trace(
+        go.Bar(x=platform_summary.index, y=platform_summary['spend'], name='Spend', marker_color='#1f77b4'),
+        row=1, col=1
+    )
+    
+    # Revenue chart
+    fig.add_trace(
+        go.Bar(x=platform_summary.index, y=platform_summary['attributed_revenue'], name='Revenue', marker_color='#ff7f0e'),
+        row=1, col=2
+    )
+    
+    # ROAS chart
+    fig.add_trace(
+        go.Bar(x=platform_summary.index, y=platform_summary['roas'], name='ROAS', marker_color='#2ca02c'),
+        row=2, col=1
+    )
+    
+    # CTR chart
+    fig.add_trace(
+        go.Bar(x=platform_summary.index, y=platform_summary['ctr'], name='CTR', marker_color='#d62728'),
+        row=2, col=2
     )
     
     return fig, platform_summary
@@ -277,6 +307,7 @@ def create_platform_comparison(marketing_df, selected_date_range):
 def create_tactic_analysis(marketing_df, selected_date_range):
     """Create tactic performance analysis"""
     if marketing_df.empty:
+        st.error("No marketing data available")
         return None, pd.DataFrame()
     
     # Convert date range to datetime for comparison
@@ -289,6 +320,7 @@ def create_tactic_analysis(marketing_df, selected_date_range):
     ]
     
     if len(marketing_filtered) == 0:
+        st.warning("No data available for selected date range")
         return None, pd.DataFrame()
     
     # Tactic performance
@@ -296,19 +328,137 @@ def create_tactic_analysis(marketing_df, selected_date_range):
         'spend': 'sum',
         'attributed_revenue': 'sum',
         'roas': 'mean',
-        'ctr': 'mean'
+        'ctr': 'mean',
+        'impressions': 'sum'
     }).round(2).sort_values('roas', ascending=False)
     
-    # Create simple bar chart
-    fig = px.bar(
+    # Create scatter plot for tactic efficiency
+    fig = px.scatter(
         tactic_summary.reset_index(), 
-        x='tactic', 
-        y='roas',
-        title="ROAS by Tactic",
-        labels={'tactic': 'Tactic', 'roas': 'ROAS'}
+
+        x='spend', 
+        y='attributed_revenue', 
+        size='impressions',
+        color='roas',
+        hover_data=['ctr'],
+        title="Tactic Performance: Spend vs Revenue (Size = Impressions, Color = ROAS)",
+        labels={'spend': 'Total Spend ($)', 'attributed_revenue': 'Attributed Revenue ($)'}
     )
     
+    fig.update_layout(height=600, showlegend=False, title_text="Platform Performance Comparison")
     return fig, tactic_summary
+
+def create_trend_analysis(marketing_df, business_df, selected_date_range):
+    """Create trend analysis over time"""
+    if marketing_df.empty or business_df.empty:
+        st.error("No data available")
+        return None
+    
+    # Convert date range to datetime for comparison
+    start_date = pd.to_datetime(selected_date_range[0])
+    end_date = pd.to_datetime(selected_date_range[1])
+    
+    marketing_filtered = marketing_df[
+        (marketing_df['date'] >= start_date) & 
+        (marketing_df['date'] <= end_date)
+    ]
+    business_filtered = business_df[
+        (business_df['date'] >= start_date) & 
+        (business_df['date'] <= end_date)
+    ]
+    
+    # Daily aggregations
+    daily_marketing = marketing_filtered.groupby('date').agg({
+        'spend': 'sum',
+        'attributed_revenue': 'sum',
+        'impressions': 'sum',
+        'clicks': 'sum'
+    }).reset_index()
+    
+    daily_marketing['roas'] = (daily_marketing['attributed_revenue'] / daily_marketing['spend']).round(2)
+    daily_marketing['ctr'] = (daily_marketing['clicks'] / daily_marketing['impressions'] * 100).round(2)
+    
+    # Create trend chart
+    fig = make_subplots(
+        rows=2, cols=2,
+        subplot_titles=('Daily Spend vs Revenue', 'ROAS Trend', 'Impressions vs Clicks', 'Business Revenue vs Marketing Revenue'),
+        specs=[[{"secondary_y": True}, {"type": "scatter"}],
+               [{"type": "scatter"}, {"secondary_y": True}]]
+    )
+    
+    # Spend vs Revenue
+    fig.add_trace(
+        go.Scatter(x=daily_marketing['date'], y=daily_marketing['spend'], name='Spend', line=dict(color='#1f77b4')),
+        row=1, col=1, secondary_y=False
+    )
+    fig.add_trace(
+        go.Scatter(x=daily_marketing['date'], y=daily_marketing['attributed_revenue'], name='Revenue', line=dict(color='#ff7f0e')),
+        row=1, col=1, secondary_y=True
+    )
+    
+    # ROAS trend
+    fig.add_trace(
+        go.Scatter(x=daily_marketing['date'], y=daily_marketing['roas'], name='ROAS', line=dict(color='#2ca02c')),
+        row=1, col=2
+    )
+    
+    # Impressions vs Clicks
+    fig.add_trace(
+        go.Scatter(x=daily_marketing['impressions'], y=daily_marketing['clicks'], name='Impressions vs Clicks', mode='markers', marker=dict(color='#d62728')),
+        row=2, col=1
+    )
+    
+    # Business vs Marketing Revenue
+    fig.add_trace(
+        go.Scatter(x=business_filtered['date'], y=business_filtered['total_revenue'], name='Business Revenue', line=dict(color='#9467bd')),
+        row=2, col=2, secondary_y=False
+    )
+    fig.add_trace(
+        go.Scatter(x=daily_marketing['date'], y=daily_marketing['attributed_revenue'], name='Marketing Revenue', line=dict(color='#8c564b')),
+        row=2, col=2, secondary_y=True
+    )
+    
+    fig.update_layout(height=800, title_text="Trend Analysis Over Time")
+    return fig
+
+def create_geographic_analysis(marketing_df, selected_date_range):
+    """Create geographic performance analysis"""
+    if marketing_df.empty:
+        st.error("No marketing data available")
+        return None, pd.DataFrame()
+    
+    # Convert date range to datetime for comparison
+    start_date = pd.to_datetime(selected_date_range[0])
+    end_date = pd.to_datetime(selected_date_range[1])
+    
+    marketing_filtered = marketing_df[
+        (marketing_df['date'] >= start_date) & 
+        (marketing_df['date'] <= end_date)
+    ]
+    
+    if len(marketing_filtered) == 0:
+        st.warning("No data available for selected date range")
+        return None, pd.DataFrame()
+    
+    # State performance
+    state_summary = marketing_filtered.groupby('state').agg({
+        'spend': 'sum',
+        'attributed_revenue': 'sum',
+        'roas': 'mean',
+        'impressions': 'sum'
+    }).round(2).sort_values('spend', ascending=False)
+    
+    # Create geographic heatmap
+    fig = px.bar(
+        state_summary.head(10).reset_index(), 
+        x='state', 
+        y='spend',
+        title="Top 10 States by Marketing Spend",
+        labels={'state': 'State', 'spend': 'Total Spend ($)'}
+    )
+    
+    return fig, state_summary
+
 
 def create_insights(marketing_df, business_df, selected_date_range):
     """Generate actionable insights"""
@@ -347,6 +497,13 @@ def create_insights(marketing_df, business_df, selected_date_range):
         best_tactic_roas = tactic_roas.iloc[0]
         insights.append(f"🚀 **Most Efficient Tactic**: {best_tactic} with {best_tactic_roas:.1f}x ROAS")
     
+    # Geographic insights
+    state_roas = marketing_filtered.groupby('state')['roas'].mean().sort_values(ascending=False)
+    if len(state_roas) > 0:
+        best_state = state_roas.index[0]
+        best_state_roas = state_roas.iloc[0]
+        insights.append(f"📍 **Best Performing State**: {best_state} with {best_state_roas:.1f}x ROAS")
+    
     # Business insights
     total_marketing_revenue = marketing_filtered['attributed_revenue'].sum()
     total_business_revenue = business_filtered['total_revenue'].sum()
@@ -354,6 +511,11 @@ def create_insights(marketing_df, business_df, selected_date_range):
         attribution_rate = (total_marketing_revenue / total_business_revenue * 100)
         insights.append(f"📊 **Marketing Attribution**: {attribution_rate:.1f}% of total business revenue")
     
+    # Efficiency insights
+    avg_ctr = marketing_filtered['ctr'].mean()
+    if avg_ctr < 2.0:
+        insights.append(f"🔍 **CTR Opportunity**: Average CTR is {avg_ctr:.2f}% - consider optimizing ad creative")
+   
     return insights
 
 def main():
@@ -428,6 +590,23 @@ def main():
     if tactic_fig:
         st.plotly_chart(tactic_fig, width='stretch')
         st.dataframe(tactic_summary, width='stretch')
+    
+    st.markdown("---")
+    
+    # Trend Analysis
+    st.subheader("Trend Analysis Over Time")
+    trend_fig = create_trend_analysis(marketing_df, business_df, selected_date_range)
+    if trend_fig:
+        st.plotly_chart(trend_fig, width='stretch')
+    
+    st.markdown("---")
+    
+    # Geographic Analysis
+    st.subheader("Geographic Performance")
+    geo_fig, state_summary = create_geographic_analysis(marketing_df, selected_date_range)
+    if geo_fig:
+        st.plotly_chart(geo_fig, width='stretch')
+        st.dataframe(state_summary, width='stretch')
     
     st.markdown("---")
     
