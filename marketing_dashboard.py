@@ -119,7 +119,7 @@ def load_and_process_data():
             ('/mount/src/marketing-intelligence-dashboard/Facebook.csv', 
              '/mount/src/marketing-intelligence-dashboard/Google.csv',
              '/mount/src/marketing-intelligence-dashboard/TikTok.csv',
-             '/mount/src/marketing-intelligence-dashboard/Business.csv'),
+             '/mount/src/marketing-intelligence-dashboard/business.csv'),
             # Alternative Streamlit Cloud paths
             ('/app/marketing-intelligence-dashboard/Facebook.csv',
              '/app/marketing-intelligence-dashboard/Google.csv',
