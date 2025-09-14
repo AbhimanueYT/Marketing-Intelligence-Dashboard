@@ -5,7 +5,11 @@ import plotly.graph_objects as go
 import numpy as np
 from datetime import datetime, timedelta
 import warnings
+import os
 warnings.filterwarnings('ignore')
+
+# Disable file watcher to avoid inotify issues on Streamlit Cloud
+os.environ['STREAMLIT_SERVER_FILE_WATCHER_TYPE'] = 'none'
 
 # Page configuration
 st.set_page_config(
@@ -100,7 +104,7 @@ def generate_sample_data():
     
     return pd.DataFrame(marketing_data), pd.DataFrame(business_data)
 
-@st.cache_data
+@st.cache_data(ttl=3600)  # Cache for 1 hour to reduce file system access
 def load_and_process_data():
     """Load and process all datasets"""
     try:
