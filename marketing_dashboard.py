@@ -134,7 +134,6 @@ def load_and_process_data():
         
         
         for i, (fb_path, go_path, tt_path, bus_path) in enumerate(file_paths):
-            st.info(f"🔍 Trying path set {i+1}: {fb_path}")
             try:
                 facebook_df = pd.read_csv(fb_path)
                 google_df = pd.read_csv(go_path)
@@ -158,8 +157,6 @@ def load_and_process_data():
         
         # Combine all marketing data
         marketing_df = pd.concat([facebook_df, google_df, tiktok_df], ignore_index=True)
-        
-        st.success("✅ Loaded data from CSV files")
         
     except FileNotFoundError:
         st.warning("⚠️ CSV files not found. Using sample data for demonstration.")
