@@ -111,15 +111,12 @@ def load_and_process_data():
     try:
         # Try different file paths for local vs cloud deployment
         file_paths = [
-            # Local development paths
-            ('Facebook.csv', 'Google.csv', 'TikTok.csv', 'Business.csv'),
-            # Cloud deployment paths (same directory)
-            ('./Facebook.csv', './Google.csv', './TikTok.csv', './Business.csv'),
-            # Alternative cloud paths
-            ('/mount/src/marketing-intelligence-dashboard/Facebook.csv', 
-             '/mount/src/marketing-intelligence-dashboard/Google.csv',
-             '/mount/src/marketing-intelligence-dashboard/TikTok.csv',
-             '/mount/src/marketing-intelligence-dashboard/Business.csv')
+            # GitHub repository raw URLs
+            ('https://raw.githubusercontent.com/AbhimanueYT/Marketing-Intelligence-Dashboard/refs/heads/main/Facebook.csv',
+             'https://raw.githubusercontent.com/AbhimanueYT/Marketing-Intelligence-Dashboard/refs/heads/main/Facebook.csv',
+             'https://raw.githubusercontent.com/AbhimanueYT/Marketing-Intelligence-Dashboard/refs/heads/main/Google.csv',
+             'https://raw.githubusercontent.com/AbhimanueYT/Marketing-Intelligence-Dashboard/refs/heads/main/TikTok.csv',
+             'https://raw.githubusercontent.com/AbhimanueYT/Marketing-Intelligence-Dashboard/refs/heads/main/Business.csv')
         ]
         
         facebook_df = None
