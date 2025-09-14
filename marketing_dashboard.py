@@ -108,11 +108,37 @@ def generate_sample_data():
 def load_and_process_data():
     """Load and process all datasets"""
     try:
-        # Try to load CSV files
-        facebook_df = pd.read_csv('Facebook.csv')
-        google_df = pd.read_csv('Google.csv')
-        tiktok_df = pd.read_csv('TikTok.csv')
-        business_df = pd.read_csv('Business.csv')
+        # Try different file paths for local vs cloud deployment
+        file_paths = [
+            # Local development paths
+            ('Facebook.csv', 'Google.csv', 'TikTok.csv', 'Business.csv'),
+            # Cloud deployment paths (same directory)
+            ('./Facebook.csv', './Google.csv', './TikTok.csv', './Business.csv'),
+            # Alternative cloud paths
+            ('/mount/src/marketing-intelligence-dashboard/Facebook.csv', 
+             '/mount/src/marketing-intelligence-dashboard/Google.csv',
+             '/mount/src/marketing-intelligence-dashboard/TikTok.csv',
+             '/mount/src/marketing-intelligence-dashboard/Business.csv')
+        ]
+        
+        facebook_df = None
+        google_df = None
+        tiktok_df = None
+        business_df = None
+        
+        for fb_path, go_path, tt_path, bus_path in file_paths:
+            try:
+                facebook_df = pd.read_csv(fb_path)
+                google_df = pd.read_csv(go_path)
+                tiktok_df = pd.read_csv(tt_path)
+                business_df = pd.read_csv(bus_path)
+                st.success(f"✅ Loaded data from CSV files at: {fb_path}")
+                break
+            except FileNotFoundError:
+                continue
+        
+        if facebook_df is None:
+            raise FileNotFoundError("Could not find CSV files in any expected location")
         
         # Convert date columns
         for df in [facebook_df, google_df, tiktok_df, business_df]:
