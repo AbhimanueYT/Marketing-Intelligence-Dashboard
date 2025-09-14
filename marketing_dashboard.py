@@ -131,12 +131,7 @@ def load_and_process_data():
         google_df = None
         tiktok_df = None
         business_df = None
-        successful_path = None
         
-        # Debug: Show current working directory
-        import os
-        st.info(f"🔍 Current working directory: {os.getcwd()}")
-        st.info(f"🔍 Files in current directory: {os.listdir('.')}")
         
         for i, (fb_path, go_path, tt_path, bus_path) in enumerate(file_paths):
             st.info(f"🔍 Trying path set {i+1}: {fb_path}")
@@ -145,19 +140,11 @@ def load_and_process_data():
                 google_df = pd.read_csv(go_path)
                 tiktok_df = pd.read_csv(tt_path)
                 business_df = pd.read_csv(bus_path)
-                successful_path = fb_path
-                st.success(f"✅ SUCCESS! Loaded data from CSV files at: {fb_path}")
                 break
-            except FileNotFoundError as e:
-                st.warning(f"❌ Path set {i+1} failed: {str(e)}")
-                continue
-            except Exception as e:
-                st.warning(f"❌ Path set {i+1} error: {str(e)}")
+            except FileNotFoundError:
                 continue
         
         if facebook_df is None:
-            st.error("❌ Could not find CSV files in any expected location")
-            st.info("💡 Make sure CSV files are uploaded to your GitHub repository in the same directory as marketing_dashboard.py")
             raise FileNotFoundError("Could not find CSV files in any expected location")
         
         # Convert date columns
