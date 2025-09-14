@@ -111,31 +111,53 @@ def load_and_process_data():
     try:
         # Try different file paths for local vs cloud deployment
         file_paths = [
-            # GitHub repository raw URLs
-            ('https://raw.githubusercontent.com/AbhimanueYT/Marketing-Intelligence-Dashboard/refs/heads/main/Facebook.csv',
-             'https://raw.githubusercontent.com/AbhimanueYT/Marketing-Intelligence-Dashboard/refs/heads/main/Facebook.csv',
-             'https://raw.githubusercontent.com/AbhimanueYT/Marketing-Intelligence-Dashboard/refs/heads/main/Google.csv',
-             'https://raw.githubusercontent.com/AbhimanueYT/Marketing-Intelligence-Dashboard/refs/heads/main/TikTok.csv',
-             'https://raw.githubusercontent.com/AbhimanueYT/Marketing-Intelligence-Dashboard/refs/heads/main/Business.csv')
+            # Local development paths
+            ('Facebook.csv', 'Google.csv', 'TikTok.csv', 'Business.csv'),
+            # Cloud deployment paths (same directory)
+            ('./Facebook.csv', './Google.csv', './TikTok.csv', './Business.csv'),
+            # Streamlit Cloud specific paths
+            ('/mount/src/marketing-intelligence-dashboard/Facebook.csv', 
+             '/mount/src/marketing-intelligence-dashboard/Google.csv',
+             '/mount/src/marketing-intelligence-dashboard/TikTok.csv',
+             '/mount/src/marketing-intelligence-dashboard/Business.csv'),
+            # Alternative Streamlit Cloud paths
+            ('/app/marketing-intelligence-dashboard/Facebook.csv',
+             '/app/marketing-intelligence-dashboard/Google.csv',
+             '/app/marketing-intelligence-dashboard/TikTok.csv',
+             '/app/marketing-intelligence-dashboard/Business.csv')
         ]
         
         facebook_df = None
         google_df = None
         tiktok_df = None
         business_df = None
+        successful_path = None
         
-        for fb_path, go_path, tt_path, bus_path in file_paths:
+        # Debug: Show current working directory
+        import os
+        st.info(f"🔍 Current working directory: {os.getcwd()}")
+        st.info(f"🔍 Files in current directory: {os.listdir('.')}")
+        
+        for i, (fb_path, go_path, tt_path, bus_path) in enumerate(file_paths):
+            st.info(f"🔍 Trying path set {i+1}: {fb_path}")
             try:
                 facebook_df = pd.read_csv(fb_path)
                 google_df = pd.read_csv(go_path)
                 tiktok_df = pd.read_csv(tt_path)
                 business_df = pd.read_csv(bus_path)
-                st.success(f"✅ Loaded data from CSV files at: {fb_path}")
+                successful_path = fb_path
+                st.success(f"✅ SUCCESS! Loaded data from CSV files at: {fb_path}")
                 break
-            except FileNotFoundError:
+            except FileNotFoundError as e:
+                st.warning(f"❌ Path set {i+1} failed: {str(e)}")
+                continue
+            except Exception as e:
+                st.warning(f"❌ Path set {i+1} error: {str(e)}")
                 continue
         
         if facebook_df is None:
+            st.error("❌ Could not find CSV files in any expected location")
+            st.info("💡 Make sure CSV files are uploaded to your GitHub repository in the same directory as marketing_dashboard.py")
             raise FileNotFoundError("Could not find CSV files in any expected location")
         
         # Convert date columns
