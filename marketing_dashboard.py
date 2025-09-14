@@ -124,7 +124,7 @@ def load_and_process_data():
             ('/app/marketing-intelligence-dashboard/Facebook.csv',
              '/app/marketing-intelligence-dashboard/Google.csv',
              '/app/marketing-intelligence-dashboard/TikTok.csv',
-             '/app/marketing-intelligence-dashboard/Business.csv')
+             '/app/marketing-intelligence-dashboard/business.csv')
         ]
         
         facebook_df = None
