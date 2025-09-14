@@ -429,40 +429,40 @@ def main():
     # Platform Comparison
     st.subheader("Platform Performance Comparison")
     platform_fig, platform_summary = create_platform_comparison(marketing_df, selected_date_range)
-    st.plotly_chart(platform_fig, use_container_width=True)
+    st.plotly_chart(platform_fig, width='stretch')
     
     # Platform summary table
     st.subheader("Platform Summary")
-    st.dataframe(platform_summary, use_container_width=True)
+    st.dataframe(platform_summary, width='stretch')
     
     st.markdown("---")
     
     # Tactic Analysis
     st.subheader("Tactic Performance Analysis")
     tactic_fig, tactic_summary = create_tactic_analysis(marketing_df, selected_date_range)
-    st.plotly_chart(tactic_fig, use_container_width=True)
+    st.plotly_chart(tactic_fig, width='stretch')
     
     # Tactic summary table
     st.subheader("Tactic Summary")
-    st.dataframe(tactic_summary, use_container_width=True)
+    st.dataframe(tactic_summary, width='stretch')
     
     st.markdown("---")
     
     # Trend Analysis
     st.subheader("Trend Analysis Over Time")
     trend_fig = create_trend_analysis(marketing_df, business_df, selected_date_range)
-    st.plotly_chart(trend_fig, use_container_width=True)
+    st.plotly_chart(trend_fig, width='stretch')
     
     st.markdown("---")
     
     # Geographic Analysis
     st.subheader("Geographic Performance")
     geo_fig, state_summary = create_geographic_analysis(marketing_df, selected_date_range)
-    st.plotly_chart(geo_fig, use_container_width=True)
+    st.plotly_chart(geo_fig, width='stretch')
     
     # State summary table
     st.subheader("State Performance Summary")
-    st.dataframe(state_summary, use_container_width=True)
+    st.dataframe(state_summary, width='stretch')
     
     st.markdown("---")
     
